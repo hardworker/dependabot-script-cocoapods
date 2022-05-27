@@ -1,0 +1,41 @@
+name: Push docker images
+env:
+  BASE_IMAGE: "ubuntu:18.04"
+  CORE_IMAGE: "ghcr.io/hardworker/dependabot-core-cocoapods"
+on: workflow_dispatch
+jobs:
+  push-core-image:
+    name: Push dependabot-core image to Github Registry
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'hardworker/dependabot-script-cocoapods' }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          repository: "jspargo/dependabot-core.git"
+          ref: "add-cocoapods"
+      - name: Build dependabot-core image
+        env:
+          DOCKER_BUILDKIT: 1
+        run: |
+          docker build \
+            -t "$CORE_IMAGE:latest" \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --cache-from "$BASE_IMAGE" \
+            --cache-from "$CORE_IMAGE:latest" \
+            .
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Push latest image
+        run: |
+          docker push "$CORE_IMAGE:latest"
+      - name: Push tagged image
+        if: "contains(github.ref, 'refs/tags')"
+        run: |
+          VERSION="$(grep -Eo "[0-9]+\.[0-9]+\.[0-9]+" common/lib/dependabot/version.rb)"
+          docker tag "$CORE_IMAGE:latest" "$CORE_IMAGE:$VERSION"
+          docker push "$CORE_IMAGE:$VERSION"

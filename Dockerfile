@@ -1,4 +1,4 @@
-FROM dependabot/dependabot-core:0.172.2
+FROM ghcr.io/hardworker/dependabot-cocoapods-runner:latest
 
 ARG CODE_DIR=/home/dependabot/dependabot-script
 RUN mkdir -p ${CODE_DIR}
