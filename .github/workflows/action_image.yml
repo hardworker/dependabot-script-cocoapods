@@ -2,7 +2,13 @@ name: Push script docker images
 env:
   BASE_IMAGE: "ubuntu:18.04"
   SCRIPT_IMAGE: "ghcr.io/hardworker/dependabot-script-cocoapods"
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+  workflow_run:
+    workflows: [Push base docker image]
+    types:
+      - completed
 jobs:
   push-core-image:
     name: Push dependabot-core image to Github Registry
@@ -23,6 +29,7 @@ jobs:
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --cache-from "$BASE_IMAGE" \
             --cache-from "$SCRIPT_IMAGE:latest" \
+            -f Dockerfile \
             .
       - name: Log in to GHCR
         run: |
