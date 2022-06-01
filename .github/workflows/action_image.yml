@@ -1,7 +1,7 @@
 name: Push script docker images
 env:
   BASE_IMAGE: "ubuntu:18.04"
-  SCRIPT_IMAGE: "ghcr.io/hardworker/dependabot-script-cocoapods"
+  SCRIPT_IMAGE: "ghcr.io/sweatco/dependabot-script-cocoapods"
 on:
   workflow_dispatch:
   push:
@@ -13,7 +13,7 @@ jobs:
   push-core-image:
     name: Push dependabot-core image to Github Registry
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'hardworker/dependabot-script-cocoapods' }}
+    if: ${{ github.repository == 'sweatco/dependabot-script-cocoapods' }}
     permissions:
       contents: read
       packages: write
