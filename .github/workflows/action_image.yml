@@ -20,6 +20,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Build dependabot-script image
         env:
           DOCKER_BUILDKIT: 1
@@ -31,9 +34,6 @@ jobs:
             --cache-from "$SCRIPT_IMAGE:latest" \
             -f Dockerfile \
             .
-      - name: Log in to GHCR
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Push latest image
         run: |
           docker push "$SCRIPT_IMAGE:latest"
