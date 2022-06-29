@@ -1,4 +1,4 @@
-name: Push base docker images
+name: Push core docker images
 env:
   BASE_IMAGE: "ubuntu:18.04"
   CORE_IMAGE: "ghcr.io/sweatco/dependabot-core-cocoapods"
@@ -12,16 +12,23 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout dependabot-core code
+        uses: actions/checkout@v3
         with:
           repository: "jspargo/dependabot-core.git"
-          ref: "add-cocoapods"
+          ref: add-cocoapods
+          path: core
+      - name: Checkout dependabot-script code
+        uses: actions/checkout@v3
+        with:
+          path: script
       - name: Build dependabot-core image
+        working-directory: core
         env:
           DOCKER_BUILDKIT: 1
         run: |
           docker build \
+            -f ../script/Dockerfile.core \
             -t "$CORE_IMAGE:latest" \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --cache-from "$BASE_IMAGE" \

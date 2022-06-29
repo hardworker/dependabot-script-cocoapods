@@ -1,0 +1,69 @@
+FROM ubuntu:20.04
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+### SYSTEM DEPENDENCIES
+
+ENV DEBIAN_FRONTEND="noninteractive" \
+  LC_ALL="en_US.UTF-8" \
+  LANG="en_US.UTF-8"
+
+RUN apt-get update \
+  && apt-get upgrade -y \
+  && apt-get install -y --no-install-recommends \
+    build-essential \
+    dirmngr \
+    git \
+    bzr \
+    mercurial \
+    gnupg2 \
+    ca-certificates \
+    curl \
+    file \
+    zlib1g-dev \
+    liblzma-dev \
+    tzdata \
+    zip \
+    unzip \
+    locales \
+    openssh-client \
+    software-properties-common \
+  && locale-gen en_US.UTF-8 \
+  && rm -rf /var/lib/apt/lists/*
+
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN if ! getent group "$USER_GID"; then groupadd --gid "$USER_GID" dependabot ; \
+     else GROUP_NAME=$(getent group $USER_GID | awk -F':' '{print $1}'); groupmod -n dependabot "$GROUP_NAME" ; fi \
+  && useradd --uid "${USER_UID}" --gid "${USER_GID}" -m dependabot \
+  && mkdir -p /opt && chown dependabot:dependabot /opt
+
+
+### RUBY
+
+# Install Ruby 2.7, update RubyGems, and install Bundler
+ENV BUNDLE_SILENCE_ROOT_WARNING=1
+# Disable the outdated rubygems installation from being loaded
+ENV DEBIAN_DISABLE_RUBYGEMS_INTEGRATION=true
+# Allow gem installs as the dependabot user
+ENV BUNDLE_PATH=".bundle" \
+    BUNDLE_BIN=".bundle/bin"
+ENV PATH="$BUNDLE_BIN:$PATH:$BUNDLE_PATH/bin"
+RUN apt-add-repository ppa:brightbox/ruby-ng \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends ruby2.7 ruby2.7-dev \
+  && gem update --system 3.2.20 \
+  && gem install bundler -v 1.17.3 --no-document \
+  && rm -rf /var/lib/gems/2.7.0/cache/* \
+  && rm -rf /var/lib/apt/lists/*
+
+
+USER dependabot
+
+ENV HOME="/home/dependabot"
+
+ARG CODE_DIR=${HOME}/dependabot-core
+COPY . ${CODE_DIR}
+
+WORKDIR ${HOME}

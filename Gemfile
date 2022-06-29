@@ -3,4 +3,6 @@
 source "https://rubygems.org"
 
 gem "irb"
-gem "dependabot-omnibus", "~> 0.172.2"
+
+gem "dependabot-common", :path => "/home/dependabot/dependabot-core/common"
+gem "dependabot-cocoapods", :path => "/home/dependabot/dependabot-core/cocoapods"
