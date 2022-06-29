@@ -6,7 +6,7 @@ require "dependabot/file_parsers"
 require "dependabot/update_checkers"
 require "dependabot/file_updaters"
 require "dependabot/pull_request_creator"
-require "dependabot/omnibus"
+require "dependabot/cocoapods" # Use 'dependabot/cocoapods' instead of 'dependabot/omnibus' as we need only one 'package_manager'
 require "gitlab"
 
 credentials = [
